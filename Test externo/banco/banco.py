@@ -1,34 +1,14 @@
-contas = [
-{"cpf": 1020,
-"limitesaque": 0,
-"limitedeposito": 0,
-"extrato": [],
-"info_conta": {
-"data_criação": "27/06/2026",
-"ultimo_login": "",
-"quantida_login": 0,
-"nome":"kiko",
-"senha": 10,
-"saldo": 1000,
-}},
-{"cpf": 1030,
-"limitesaque": 0,
-"limitedeposito": 0,
-"extrato": [],
-"info_conta": {
-"data_criação": "27/06/2026",
-"ultimo_login": "",
-"quantida_login": 0,
-"nome":"mario",
-"senha": 20,
-"saldo": 3000,
 
-
-}
-}]
-
+import json
+with open("bancodedados.json", "r") as carregamento:
+    contas = json.load(carregamento)
 conta_logada = None
 from datetime import datetime
+
+def salvar_dados():
+    print("informação salva")
+    with open("bancodedados.json", "w") as arquivo:
+        json.dump(contas, arquivo, indent= 4, ensure_ascii= False)
 
 def menu():
     while True:
@@ -41,15 +21,17 @@ def menu():
         1 - Criar conta
         2 - Entrar em conta
         3 - lista de contas
-        4 - encerrar programa
+        4 - procurar por cpf
+        5 - encerrar programa
         ====================
         """)
             try:
                 escolha = int(input(">>>"))
-            except:
+            except ValueError:
                 print("insira valor valido")
+                continue
 
-            if escolha in (1,2,3,4,):
+            if escolha in (1,2,3,4,5):
                 break
 
         if escolha == 1: #criar conta
@@ -61,82 +43,91 @@ def menu():
         elif escolha == 3: #lista de contas
             lista_usuarios()
 
-        elif escolha == 4:
+        elif escolha == 4: # procurar cpf
+            procurar_por_cpf()
+
+        elif escolha == 5:
             print("obrigado por entrar na nossa agencia, tenha um bom dia")
             exit()
+def procurar_por_cpf():
+    global contas
+
+    usuario_desejado = input("digite o cpf da pessoa desejada:")
+    for desejado in contas:
+        if usuario_desejado == desejado["cpf"]:
+            print("usuario encontrado")
+          
+            for tag, info in desejado["info_conta"].items():
+                print(f"{tag}: {info}")
+            return
+        print("usuario não encontrado")
+    return
 
 def criar_conta(): # criando conta
     global contas
     while True:
-            usuario_existe = False
-            cpf = int(input("digite seu cpf:"))
-            nome = input("digite seu nome:")
+        cpf = input("digite seu cpf:")
+        nome = input("digite seu nome:")
 
-            while True: # verificar usuario igual
-                while True:# verificação de senha igual
+        while True:# verificação de senha igual
+            try:
+                senha = int(input("digite sua senha(somente numeros):"))
+            except:
+                print("erro de senha, deve ser somente numero")
+                continue
+            try:
+                senhateste = int(input("digite sua senha novamente:"))
+            except:
+                print("senha deve ser somente numero")
+                continue
 
-                    try:
-                        senha = int(input("digite sua senha(somente numeros):"))
-                    except:
-                        print("erro de senha, deve ser somente numero")
-                    try:
-                        senhateste = int(input("digite sua senha novamente:"))
-                    except:
-                        print("senha deve ser somente numero")
+            if senha == senhateste:
+                usuario = procurar_conta_por_cpf(cpf)
+                if usuario == None:
+                    contas.append({"cpf": cpf ,"limitesaque": 0,
+                    "limitedeposito": 0, "extrato": [],
+                    "info_conta": {
+                    "data_criação": datetime.now().strftime("%d/%m/%Y"),
+                    "quantida_login": 0,
+                    "nome":nome,"senha": senha,
+                    "saldo": 0,
+                    }})
+                    salvar_dados()
 
-                    if senha == senhateste:
-                        for usuario in contas: 
-                            if usuario["cpf"] == cpf:
-                               usuario_existe = True
+                    print("conta criada com sucesso!")
+                    return
+                else:
+                    print("ja existe um usuario com este cpf")
+                    return
+            else:
+                print("!as duas senha devem ser iguais!")
 
-                        if usuario_existe == True:
-                            print("ja existe um usuario com este cpf")
-
-                        elif usuario_existe == False:
-                            contas.append({"cpf": cpf ,"limitesaque": 0,
-                            "limitedeposito": 0, "extrato": [],
-                            "info_conta": {
-                            "data_criação": datetime.now().strftime("%d/%m/%Y"),
-                            "quantida_login": 0,
-                            "nome":nome,"senha": senha,
-                            "saldo": 0,
-                            }})
-
-                            print("conta criada com sucesso!")
-                            break
-                        break
-                    else:
-                        print("!as duas senha devem ser iguais!")
-           
-                break
-            break
-    return
 def lista_usuarios():
     for usuario in contas:
         print(usuario["info_conta"]["nome"])
-
     return
 def entrar_conta():
     global conta_logada
     while True:
-        usuario_existe = False
-        cpf = int(input("digite seu cpf:"))
+        cpf = input("digite seu cpf:")
         senha = int(input("digite sua senha:"))
-        for usuario_logado in contas:
-            if usuario_logado["cpf"] == cpf and usuario_logado["info_conta"]["senha"] == senha:
-                usuario_existe = True
-                break
-               
-        if usuario_existe == True:
+        usuario_logado = procurar_conta_por_cpf(cpf)
 
-            conta_logada = usuario_logado
-            conta_logada["info_conta"]["quantida_login"] += 1
-            conta_logada["info_conta"]["ultimo_login"] = datetime.now().strftime("%d/%m/%y")
-            print(f"você logou em {usuario_logado}")
-            break
-        else:
-            print("usuario inexistente, voltando ao menu...")
+        if usuario_logado == None:
+            print("usuario inexistente!")
             return
+            
+        if senha != usuario_logado["info_conta"]["senha"]:
+            print("senha incorreta")
+            return
+
+        conta_logada = usuario_logado
+        conta_logada["info_conta"]["quantida_login"] += 1
+        conta_logada["info_conta"]["ultimo_login"] = datetime.now().strftime("%d/%m/%y")
+        print(f"você logou em {usuario_logado}")
+        salvar_dados()
+        break
+
     menu_bancario()
 def opção_conta():
     global conta_logada
@@ -170,10 +161,11 @@ def opção_conta():
         elif escolha == 5: # ver informações da conta
             for item in conta_logada["info_conta"].items():
                 print(item)
+            return
         elif escolha == 6: # sair
             print("saindo da conta")
             conta_logada = None
-        return
+            return
 def excluir_conta():
 
     escolha = int(input("""
@@ -184,6 +176,7 @@ def excluir_conta():
     if escolha == 1:
         print("você é louco!")
         contas.remove(conta_logada)
+        salvar_dados()
     return
 def alterar_nome():
     while True:
@@ -195,6 +188,7 @@ def alterar_nome():
 
         else:
             conta_logada["info_conta"]["nome"] = novo_nome1
+            salvar_dados()
             return
 def alterar_senha():
     while True:
@@ -206,16 +200,19 @@ def alterar_senha():
 
         else:
             conta_logada["info_conta"]["senha"] = nova_senha1
+            salvar_dados()
             return
 
 def menu_bancario():
     global conta_logada
-    while True:
-        escolha = int(input(f"""
+    if conta_logada == None:
+        return
+    else:
+        while True:
+            escolha = int(input(f"""
         ==== MINHA CONTA ====
         nome: {conta_logada["info_conta"]["nome"]}
         saldo: {conta_logada["info_conta"]["saldo"]}
-        senha: {conta_logada["info_conta"]["senha"] }
         numero de logins: {conta_logada["info_conta"]["quantida_login"]}
         === MENU BANCARIO ===
         1 - consultar saldo
@@ -225,36 +222,39 @@ def menu_bancario():
         5 - opção de conta
         =====================
         >>>"""))
-        if escolha == 1: # consultar saldo
-            consultar_saldo()
+            if escolha == 1: # consultar saldo
+                consultar_saldo()
 
-        elif escolha == 2: # depositar
-            depositar()
+            elif escolha == 2: # depositar
+                depositar()
 
-        elif escolha == 3: # sacar
-            sacar()
+            elif escolha == 3: # sacar
+                sacar()
 
-        elif escolha == 4: # transferir
-            transferir()
+            elif escolha == 4: # transferir
+                transferir()
 
-        elif escolha == 5: # opção de conta
-            opção_conta()
+            elif escolha == 5: # opção de conta
+                opção_conta()
+                if conta_logada == None:
+                    break
+        return
+                
 
-            return
 def consultar_saldo():
-    type = "consulta"
+    tipo = "consulta"
 
     print(f"seu saldo atual é : {conta_logada["info_conta"]["saldo"]}")
 
     conta_logada["extrato"].append({
-    "tipo": type,
+    "tipo": tipo,
     "data": datetime.now().strftime("%d/%m/%y"),
     "hora": datetime.now().strftime("%H/%M/%S")
-    
     })
+    salvar_dados()
     return
 def depositar():
-    type = "depositar"
+    tipo = "depositar"
     if conta_logada["limitedeposito"] > 3:
         print("você ja alcançou seu limite de depositos")
         return
@@ -267,16 +267,17 @@ def depositar():
 
         else:
             conta_logada["extrato"].append({   
-    "tipo": type,
+    "tipo": tipo,
     "data": datetime.now().strftime("%d/%m/%y"),
     "hora": datetime.now().strftime("%H/%M/%S"),
     "valor": deposito
     })
             conta_logada["info_conta"]["saldo"] += deposito
             conta_logada["limitedeposito"] += 1
+            salvar_dados()
     return
 def sacar():
-    type = "saque"
+    tipo = "saque"
     if conta_logada["limitesaque"] > 3:
         print("você ja alcançou seu limite de saques")
         return
@@ -291,33 +292,36 @@ def sacar():
 
         else:
             conta_logada["extrato"].append({
-    "tipo": type,
+    "tipo": tipo,
     "data": datetime.now().strftime("%d/%m/%y"),
     "hora": datetime.now().strftime("%H/%M/%S"),
     "valor": - saque
             })
             conta_logada["info_conta"]["saldo"] -= saque
             conta_logada["limitesaque"] += 1
+            salvar_dados()
     return
 def transferir():
-    type = "transferencia"
+    tipo = "transferencia"
     global contas
-    usuario_existe = False
-    destinatario = int(input("digite o cpf de quem deseja transferir:"))
-    for usuario_destinatario in contas:
-        if usuario_destinatario["cpf"] == destinatario:
-            usuario_existe = True
+    destinatario = input("digite o cpf de quem deseja transferir:")
+    cpf_destinatario = procurar_conta_por_cpf(destinatario)
+    if cpf_destinatario == None:
+        print("usuario inexistente!")
+        return
 
-    if usuario_destinatario["cpf"] == conta_logada["cpf"]:
+    if cpf_destinatario["cpf"] == conta_logada["cpf"]:
         print("você não pode transferir para si mesmo")
+        return
 
-    if usuario_existe == True :
-        destinatario = usuario_destinatario
+    elif cpf_destinatario["cpf"] == destinatario:
+        destinatario = cpf_destinatario
         print("usuario existente")
         valor = int(input("quanto deseja transferir para esse pessoa?:"))
 
         if valor < 0:
             print("você não pode transferir valor negativo")
+            return
 
         elif valor > conta_logada["info_conta"]["saldo"]:
             print("você não possui saldo")
@@ -325,27 +329,30 @@ def transferir():
 
         else:
             conta_logada["extrato"].append({
-    "tipo": type,
-    "data": datetime.now().strftime("%d/%m/%y"),
-    "hora": datetime.now().strftime("%H/%M/%S"),
-    "valor": - valor,
-    "pessoa": destinatario["info_conta"]["nome"]
+            "tipo": tipo,
+            "data": datetime.now().strftime("%d/%m/%y"),
+            "hora": datetime.now().strftime("%H/%M/%S"),
+            "valor": - valor,
+            "pessoa": destinatario["info_conta"]["nome"]
             })
             conta_logada["info_conta"]["saldo"] -= valor
             destinatario["info_conta"]["saldo"] += valor
             destinatario["extrato"].append({
-    "tipo": type,
-    "data": datetime.now().strftime("%d/%m/%y"),
-    "hora": datetime.now().strftime("%H/%M/%S"),
-    "valor": + valor,
-    "pessoa": conta_logada["info_conta"]["nome"]
-
+            "tipo": tipo,
+            "data": datetime.now().strftime("%d/%m/%y"),
+            "hora": datetime.now().strftime("%H/%M/%S"),
+            "valor": + valor,
+            "pessoa": conta_logada["info_conta"]["nome"]
             })
+            salvar_dados()
+            return
 
-        
-    else:
-        print("usuario inexistente")
-        return
+
+def procurar_conta_por_cpf(cpf): # verificar se cpf existe
+    for usuario in contas:
+        if usuario["cpf"] == cpf:
+            return usuario
+    return None
 
 def inicio(): # inicio 
     print("seja bem vindo a nossa agencia oque o senhor(a) deseja?")

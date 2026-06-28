@@ -1,0 +1,120 @@
+[
+    {
+        "cpf": 1020,
+        "limitesaque": 0,
+        "limitedeposito": 0,
+        "extrato": [
+            {
+                "tipo": "transferencia",
+                "data": "28/06/26",
+                "hora": "05/23/23",
+                "valor": 200,
+                "pessoa": "felipe"
+            }
+        ],
+        "info_conta": {
+            "data_cria\u00e7\u00e3o": "27/06/2026",
+            "ultimo_login": "",
+            "quantida_login": 0,
+            "nome": "kiko",
+            "senha": 10,
+            "saldo": 1200
+        }
+    },
+    {
+        "cpf": 1030,
+        "limitesaque": 0,
+        "limitedeposito": 0,
+        "extrato": [],
+        "info_conta": {
+            "data_cria\u00e7\u00e3o": "27/06/2026",
+            "ultimo_login": "",
+            "quantida_login": 0,
+            "nome": "mario",
+            "senha": 20,
+            "saldo": 3000
+        }
+    },
+    {
+        "cpf": 2030,
+        "limitesaque": 0,
+        "limitedeposito": 0,
+        "extrato": [
+            {
+                "tipo": "transferencia",
+                "data": "28/06/26",
+                "hora": "05/20/52",
+                "valor": 120,
+                "pessoa": "felipe"
+            }
+        ],
+        "info_conta": {
+            "data_cria\u00e7\u00e3o": "28/06/2026",
+            "quantida_login": 1,
+            "nome": "marcos",
+            "senha": 20,
+            "saldo": 120,
+            "ultimo_login": "28/06/26"
+        }
+    },
+    {
+        "cpf": 3030,
+        "limitesaque": 1,
+        "limitedeposito": 1,
+        "extrato": [
+            {
+                "tipo": "depositar",
+                "data": "28/06/26",
+                "hora": "05/12/15",
+                "valor": 3000
+            },
+            {
+                "tipo": "transferencia",
+                "data": "28/06/26",
+                "hora": "05/13/08",
+                "valor": -1500,
+                "pessoa": "felipe"
+            },
+            {
+                "tipo": "transferencia",
+                "data": "28/06/26",
+                "hora": "05/13/08",
+                "valor": 1500,
+                "pessoa": "felipe"
+            },
+            {
+                "tipo": "transferencia",
+                "data": "28/06/26",
+                "hora": "05/20/52",
+                "valor": -120,
+                "pessoa": "marcos"
+            },
+            {
+                "tipo": "saque",
+                "data": "28/06/26",
+                "hora": "05/21/49",
+                "valor": -200
+            },
+            {
+                "tipo": "consulta",
+                "data": "28/06/26",
+                "hora": "05/22/30"
+            },
+            {
+                "tipo": "transferencia",
+                "data": "28/06/26",
+                "hora": "05/23/23",
+                "valor": -200,
+                "pessoa": "kiko"
+            }
+        ],
+        "info_conta": {
+            "data_cria\u00e7\u00e3o": "28/06/2026",
+            "quantida_login": 11,
+            "nome": "felipe",
+            "senha": 120,
+            "saldo": 2480,
+            "ultimo_login": "28/06/26"
+        }
+    }
+]

@@ -60,9 +60,8 @@ def procurar_por_cpf():
             for tag, info in desejado["info_conta"].items():
                 print(f"{tag}: {info}")
             return
-        print("usuario não encontrado")
+    print("usuario não encontrado")
     return
-
 def criar_conta(): # criando conta
     global contas
     while True:
@@ -84,8 +83,8 @@ def criar_conta(): # criando conta
             if senha == senhateste:
                 usuario = procurar_conta_por_cpf(cpf)
                 if usuario == None:
-                    contas.append({"cpf": cpf ,"limitesaque": 0,
-                    "limitedeposito": 0, "extrato": [],
+                    contas.append({"cpf": cpf ,"limitesaque": 0,"ultimo_saque": "",
+                    "limitedeposito": 0,"ultimo_deposito": "","extrato": [],
                     "info_conta": {
                     "data_criação": datetime.now().strftime("%d/%m/%Y"),
                     "quantida_login": 0,
@@ -101,7 +100,6 @@ def criar_conta(): # criando conta
                     return
             else:
                 print("!as duas senha devem ser iguais!")
-
 def lista_usuarios():
     for usuario in contas:
         print(usuario["info_conta"]["nome"])
@@ -129,6 +127,7 @@ def entrar_conta():
         break
 
     menu_bancario()
+
 def opção_conta():
     global conta_logada
     while True:
@@ -156,11 +155,21 @@ def opção_conta():
 
         elif escolha == 4: # extrato
             for item in conta_logada["extrato"]:
-                print(item)
-            return
+                print(f"""
+ ====================
+ tipo: {item["tipo"]}
+ data: {item["data"]}
+ hora: {item["hora"]}
+ valor: {item["valor"]}""")
+                if item["pessoa"] != None:
+                    print(f""" pessoa:{item["pessoa"]}""")
+                if item["chave_pix"] != None:
+                    print(f""" chave:{item["chave_pix"]}""")
+                print(""" ====================""")
+                return
         elif escolha == 5: # ver informações da conta
-            for item in conta_logada["info_conta"].items():
-                print(item)
+            for chave , valor in conta_logada["info_conta"].items():
+                print(f"{chave}: {valor}")
             return
         elif escolha == 6: # sair
             print("saindo da conta")
@@ -219,7 +228,8 @@ def menu_bancario():
         2 - depositar
         3 - sacar
         4 - transferir
-        5 - opção de conta
+        5 - pix
+        6 - opção de conta
         =====================
         >>>"""))
             if escolha == 1: # consultar saldo
@@ -234,13 +244,14 @@ def menu_bancario():
             elif escolha == 4: # transferir
                 transferir()
 
-            elif escolha == 5: # opção de conta
+            elif escolha == 5:
+                area_pix()
+
+            elif escolha == 6: # opção de conta
                 opção_conta()
                 if conta_logada == None:
                     break
         return
-                
-
 def consultar_saldo():
     tipo = "consulta"
 
@@ -255,9 +266,12 @@ def consultar_saldo():
     return
 def depositar():
     tipo = "depositar"
-    if conta_logada["limitedeposito"] > 3:
-        print("você ja alcançou seu limite de depositos")
-        return
+    if conta_logada["limitedeposito"] >= 3:
+        if conta_logada["ultimo_deposito"] != datetime.now().strftime("%d/%m/%y"):
+            conta_logada["limitedeposto"] = 0
+        else:
+            print("você ja alcançou seu limite diario de depositos")
+            return
 
     else:
         deposito = int(input("qual valor você deseja depositar?:"))
@@ -274,13 +288,17 @@ def depositar():
     })
             conta_logada["info_conta"]["saldo"] += deposito
             conta_logada["limitedeposito"] += 1
+            conta_logada["ultimo_deposito"] = datetime.now().strftime("%d/%m/%y")
             salvar_dados()
     return
 def sacar():
     tipo = "saque"
-    if conta_logada["limitesaque"] > 3:
-        print("você ja alcançou seu limite de saques")
-        return
+    if conta_logada["limitesaque"] >= 3:
+        if conta_logada["ultimo_saque"] != datetime.now().strftime("%d/%m/%y"):
+            conta_logada["limetesaque"] = 0
+        else:
+            print("você ja alcançou seu limite de saques")
+            return
     else:
         saque = int(input("digite o quanto quer sacar:"))
 
@@ -299,6 +317,7 @@ def sacar():
             })
             conta_logada["info_conta"]["saldo"] -= saque
             conta_logada["limitesaque"] += 1
+            conta_logada["ultimo_saque"] = datetime.now().strftime("%d/%m/%y")
             salvar_dados()
     return
 def transferir():
@@ -347,7 +366,92 @@ def transferir():
             salvar_dados()
             return
 
+def area_pix():
+    while True:
+        escolha = int(input("""
+    ==== AREA PIX ====
+    1 - cadastrar chave pix
+    2 - lista de chave pix
+    3 - remover chave pix
+    4 - fazer pix
+    5 - sair
+     >>>"""))
+        if escolha == 1: # cadastrar
+            cadastrar_pix()
 
+        elif escolha == 2:#lista de chaves
+            lista_pix()
+
+        elif escolha == 3:#remover chave pix
+            remover_pix()
+
+        elif escolha == 4: #fazer pix
+            fazer_pix()
+
+        elif escolha == 5:
+            return
+def cadastrar_pix():
+    cadastro = input("digite a chave que você deseja salvar: ")
+    if cadastro in conta_logada["chave_pix"]:
+        print("esta chave ja existe")
+    else:
+        conta_logada["chave_pix"].append(cadastro)
+        salvar_dados()
+        return
+def lista_pix():
+    for item in conta_logada["chave_pix"]:
+        print(item)
+    return
+def remover_pix():
+    if conta_logada["chave_pix"] == None:
+        print("não possui nenhuma chave cadastrada")
+        return
+    for indice, chave in enumerate(conta_logada["chave_pix"]):
+        print(f"indice:{indice} chave: {chave}")
+    escolha = int(input("digite qual o indice da cahve que deseja excluir: "))
+    del conta_logada["chave_pix"][escolha]
+    salvar_dados()
+def fazer_pix():
+    tipo = "pix"
+    chave_desejada = input("digite a chave para qual deseja fazer o pix: ")
+    for usuario in contas:
+        if usuario["chave_pix"] in chave_desejada:
+            conta_recebida = usuario
+            break
+    if not conta_recebida:
+        print("usuario não existe!")
+        return
+    if conta_logada == conta_recebida:
+        print("você não pode transferir para si mesmo!")
+        return
+
+    valor = int(input("quanto deseja transferir para essa pessoa?:"))
+    if valor > conta_logada["info_conta"]["saldo"]:
+        print("você não possui esse valor!")
+        return
+
+    conta_logada["info_conta"]["saldo"] -= valor
+    conta_logada["extrato"].append({
+    "tipo": tipo,
+    "data": datetime.now().strftime("%d/%m/%y"),
+    "hora": datetime.now().strftime("%H/%M/%S"),
+    "valor": - valor,
+    "pessoa": conta_recebida["info_conta"]["nome"],
+    "chave": chave
+    })
+
+    conta_recebida["info_conta"]["saldo"] += valor
+    conta_recebida["extrato"].append({
+    "tipo": tipo,
+    "data": datetime.now().strftime("%d/%m/%y"),
+    "hora": datetime.now().strftime("%H/%M/%S"),
+    "valor": + valor,
+    "pessoa": conta_logada["info_conta"]["nome"],
+    "chave": chave
+    })
+    salvar_dados()
+    return
+    
 def procurar_conta_por_cpf(cpf): # verificar se cpf existe
     for usuario in contas:
         if usuario["cpf"] == cpf:
